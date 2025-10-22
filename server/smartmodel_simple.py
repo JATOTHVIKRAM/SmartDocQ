@@ -147,7 +147,13 @@ Answer:
         return response.text.strip()
     
     except Exception as e:
-        return f"Error generating response: {str(e)}"
+        error_msg = str(e)
+        if "quota" in error_msg.lower() or "ResourceExhausted" in error_msg:
+            return "⚠️ API quota exceeded. Please try again later or upgrade your Gemini API plan."
+        elif "404" in error_msg:
+            return "⚠️ Gemini model not available. Please check your API configuration."
+        else:
+            return f"⚠️ AI service temporarily unavailable: {error_msg}"
 
 # ---------------------
 # Public API - DocumentQA class

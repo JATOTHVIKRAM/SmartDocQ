@@ -77,8 +77,14 @@ def gemini_generate(prompt: str) -> str:
         response = model.generate_content(prompt)
         return response.text.strip()
     except Exception as e:
-        logging.error(f"Gemini API error: {e}")
-        return f"Gemini error: {repr(e)}"
+        error_msg = str(e)
+        if "quota" in error_msg.lower() or "ResourceExhausted" in error_msg:
+            return "⚠️ API quota exceeded. Please try again later or upgrade your Gemini API plan."
+        elif "404" in error_msg:
+            return "⚠️ Gemini model not available. Please check your API configuration."
+        else:
+            logging.error(f"Gemini API error: {e}")
+            return f"⚠️ AI service temporarily unavailable: {error_msg}"
 
 # -----------------------------
 # Interview Copilot
