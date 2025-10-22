@@ -140,7 +140,7 @@ def list_available_models():
 def ask_gemini_with_context(query: str, context_chunks: List[str]) -> str:
     """Ask Gemini with document context"""
     try:
-        model = genai.GenerativeModel("gemini-1.5-pro")
+        model = genai.GenerativeModel("gemini-2.5-flash")
         
         context_text = "\n".join(context_chunks)
         prompt = f"""
