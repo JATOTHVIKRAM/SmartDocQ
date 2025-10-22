@@ -96,18 +96,24 @@ class SimpleDocumentQA:
         if self.chunks is None or self.vectorizer is None or self.tfidf_matrix is None:
             return "⚠️ Please load a document first."
         
+        print(f"DEBUG: Processing query: '{query}'")
+        print(f"DEBUG: Available chunks: {len(self.chunks) if self.chunks else 0}")
+        
         # Transform query
         query_vector = self.vectorizer.transform([query])
         
         # Calculate similarities
         similarities = cosine_similarity(query_vector, self.tfidf_matrix).flatten()
         
-        # Get top 3 most similar chunks
+        # Get top 3 most similar chunks (lower threshold)
         top_indices = similarities.argsort()[-3:][::-1]
-        top_chunks = [self.chunks[i] for i in top_indices if similarities[i] > 0.1]
+        top_chunks = [self.chunks[i] for i in top_indices if similarities[i] > 0.01]  # Much lower threshold
         
         if not top_chunks:
-            return "Sorry — I cannot find the answer in the document."
+            # Fallback: use first few chunks if no good matches
+            top_chunks = self.chunks[:3] if self.chunks else []
+            if not top_chunks:
+                return "Sorry — I cannot find the answer in the document."
         
         # Send to Gemini with context
         return ask_gemini_with_context(query, top_chunks)
@@ -122,7 +128,7 @@ class SimpleDocumentQA:
 def ask_gemini_with_context(query: str, context_chunks: List[str]) -> str:
     """Ask Gemini with document context"""
     try:
-        model = genai.GenerativeModel("gemini-1.5-pro")
+        model = genai.GenerativeModel("gemini-1.5-flash")
         
         context_text = "\n".join(context_chunks)
         prompt = f"""

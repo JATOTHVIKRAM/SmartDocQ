@@ -73,7 +73,7 @@ def chunk_text(text: str, chunk_size: int = 300, overlap: int = 50) -> List[str]
 def gemini_generate(prompt: str) -> str:
     """Generate content using Gemini API"""
     try:
-        model = genai.GenerativeModel("gemini-1.5-pro")
+        model = genai.GenerativeModel("gemini-1.5-flash")
         response = model.generate_content(prompt)
         return response.text.strip()
     except Exception as e:
