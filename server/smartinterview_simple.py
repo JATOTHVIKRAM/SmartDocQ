@@ -206,16 +206,79 @@ class InterviewCopilot:
                 
         except Exception as e:
             print(f"DEBUG: JSON parsing error: {str(e)}")
-            # Fallback evaluation based on answer length and content
-            score = min(100, max(50, len(answer) // 10 + 60))  # Basic scoring
+            # Fallback evaluation based on answer content analysis
+            score = self._fallback_score_evaluation(question, answer, context)
             evaluation = {
                 "score": score,
-                "feedback": f"Answer shows understanding of the topic. Length: {len(answer)} characters.",
-                "suggestions": "Could provide more specific examples and details."
+                "feedback": f"Answer evaluated using content analysis. Score based on relevance, structure, and detail.",
+                "suggestions": "Provide more specific examples and detailed explanations to improve your score."
             }
         
         print(f"DEBUG: Final evaluation: {evaluation}")
         return evaluation
+
+    def _fallback_score_evaluation(self, question: str, answer: str, context: str) -> int:
+        """Fallback scoring when Gemini JSON parsing fails - actually evaluates content"""
+        if not answer or len(answer.strip()) < 5:
+            return 20  # Very short or empty answer
+        
+        score = 0
+        
+        # Length scoring (0-20 points)
+        if len(answer) >= 100:
+            score += 20
+        elif len(answer) >= 50:
+            score += 15
+        elif len(answer) >= 20:
+            score += 10
+        else:
+            score += 5
+        
+        # Content analysis (0-40 points)
+        answer_lower = answer.lower()
+        question_lower = question.lower()
+        
+        # Check if answer addresses the question
+        question_words = set(question_lower.split())
+        answer_words = set(answer_lower.split())
+        common_words = question_words.intersection(answer_words)
+        
+        if len(common_words) > 0:
+            score += 20  # Answer relates to question
+        else:
+            score += 5   # Answer doesn't relate to question
+        
+        # Check for common wrong answer indicators
+        wrong_indicators = ['i don\'t know', 'no idea', 'not sure', 'maybe', 'i think', 'probably', 'wrong', 'incorrect']
+        if any(indicator in answer_lower for indicator in wrong_indicators):
+            score -= 15  # Penalty for uncertainty/wrong indicators
+        
+        # Check for good answer indicators
+        good_indicators = ['because', 'therefore', 'example', 'specifically', 'detail', 'explain', 'demonstrate']
+        if any(indicator in answer_lower for indicator in good_indicators):
+            score += 15  # Bonus for detailed explanations
+        
+        # Context relevance (0-20 points)
+        if context:
+            context_words = set(context.lower().split())
+            context_overlap = len(answer_words.intersection(context_words))
+            if context_overlap > 5:
+                score += 20  # Good context usage
+            elif context_overlap > 2:
+                score += 10  # Some context usage
+            else:
+                score += 5   # Little context usage
+        
+        # Structure scoring (0-20 points)
+        if '.' in answer and len(answer.split('.')) > 2:
+            score += 10  # Multiple sentences
+        if ',' in answer:
+            score += 5   # Uses commas (better structure)
+        if answer[0].isupper() and answer.endswith('.'):
+            score += 5   # Proper sentence structure
+        
+        # Ensure score is between 0-100
+        return max(0, min(100, score))
 
     # -------------------------
     # Session Management
