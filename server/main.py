@@ -391,7 +391,7 @@ from pymongo import MongoClient
 
 # Import your existing DocumentQA (unchanged) and InterviewCopilot (from smartinterview.py)
 from smartmodel_simple import DocumentQA  # Use simplified version
-from smartinterview import InterviewCopilot  # assumes smartinterview.py is next to this file
+from smartinterview_simple import InterviewCopilot  # Use simplified version
 
 # ------------------------
 # App Setup
