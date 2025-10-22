@@ -167,25 +167,53 @@ class InterviewCopilot:
         Document Context:
         {context}
         
-        Provide:
-        1. Score (0-100)
-        2. Feedback (what was good, what could be improved)
-        3. Suggested improvements
+        Rate the answer on:
+        1. Accuracy (0-40 points)
+        2. Completeness (0-30 points) 
+        3. Clarity (0-30 points)
         
-        Format as JSON: {{"score": 85, "feedback": "Good understanding of concepts", "suggestions": "Add more specific examples"}}
+        Provide detailed feedback and suggestions.
+        
+        Respond in this EXACT JSON format:
+        {{
+            "score": 85,
+            "feedback": "Good understanding of concepts. You demonstrated knowledge of the topic and provided relevant information.",
+            "suggestions": "Add more specific examples to strengthen your answer."
+        }}
         """
         
         response = gemini_generate(prompt)
+        print(f"DEBUG: Gemini evaluation response: {response}")
         
         try:
-            evaluation = json.loads(response)
-        except:
+            # Try to extract JSON from the response
+            import re
+            json_match = re.search(r'\{.*\}', response, re.DOTALL)
+            if json_match:
+                json_str = json_match.group()
+                evaluation = json.loads(json_str)
+            else:
+                raise ValueError("No JSON found in response")
+                
+            # Validate the response has required fields
+            if not isinstance(evaluation.get("score"), (int, float)):
+                evaluation["score"] = 75
+            if not evaluation.get("feedback"):
+                evaluation["feedback"] = "Answer shows understanding of the topic."
+            if not evaluation.get("suggestions"):
+                evaluation["suggestions"] = "Could provide more specific examples."
+                
+        except Exception as e:
+            print(f"DEBUG: JSON parsing error: {str(e)}")
+            # Fallback evaluation based on answer length and content
+            score = min(100, max(50, len(answer) // 10 + 60))  # Basic scoring
             evaluation = {
-                "score": 75,
-                "feedback": "Answer shows understanding of the topic.",
-                "suggestions": "Could provide more specific examples."
+                "score": score,
+                "feedback": f"Answer shows understanding of the topic. Length: {len(answer)} characters.",
+                "suggestions": "Could provide more specific examples and details."
             }
         
+        print(f"DEBUG: Final evaluation: {evaluation}")
         return evaluation
 
     # -------------------------
@@ -219,19 +247,46 @@ class InterviewCopilot:
         
         total_score = 0
         feedback_items = []
+        detailed_feedback = []
         
-        for answer in answers:
+        print(f"DEBUG: Evaluating {len(answers)} answers")
+        
+        for i, answer in enumerate(answers):
+            print(f"DEBUG: Evaluating answer {i+1}: {answer.get('question', 'No question')[:50]}...")
             evaluation = self.evaluate_answer(answer.get("question", ""), answer.get("answer", ""))
+            
             # Handle both dict and string responses
             if isinstance(evaluation, dict):
-                total_score += evaluation.get("score", 0)
-                feedback_items.append(evaluation.get("feedback", ""))
+                score = evaluation.get("score", 0)
+                feedback = evaluation.get("feedback", "No feedback provided")
+                suggestions = evaluation.get("suggestions", "")
+                
+                total_score += score
+                feedback_items.append(feedback)
+                
+                # Create detailed feedback for each answer
+                detailed_feedback.append({
+                    "question": answer.get("question", f"Question {i+1}"),
+                    "answer": answer.get("answer", ""),
+                    "score": score,
+                    "feedback": feedback,
+                    "suggestions": suggestions
+                })
             else:
                 # If evaluation is a string, use default values
                 total_score += 75  # Default score
                 feedback_items.append(str(evaluation))
+                detailed_feedback.append({
+                    "question": answer.get("question", f"Question {i+1}"),
+                    "answer": answer.get("answer", ""),
+                    "score": 75,
+                    "feedback": str(evaluation),
+                    "suggestions": "Could provide more specific examples."
+                })
         
         avg_score = total_score / len(answers) if answers else 0
         combined_feedback = " | ".join(feedback_items)
+        
+        print(f"DEBUG: Average score: {avg_score}, Feedback: {combined_feedback[:100]}...")
         
         return round(avg_score, 2), combined_feedback
