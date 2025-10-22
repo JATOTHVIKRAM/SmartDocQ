@@ -928,9 +928,13 @@ def submit_answers(session_id: str, payload: SubmitAnswersRequest):
     Submit ALL answers at once (client-side collects them and sends list).
     Backend evaluates using the InterviewCopilot.evaluate_answers method.
     """
+    print(f"DEBUG: Submitting answers for session {session_id}")
+    print(f"DEBUG: Available sessions: {list(INTERVIEW_SESSIONS.keys())}")
+    
     session = INTERVIEW_SESSIONS.get(session_id)
     if not session:
-        raise HTTPException(status_code=404, detail="Session not found")
+        print(f"ERROR: Session {session_id} not found")
+        raise HTTPException(status_code=404, detail=f"Session {session_id} not found")
 
     if session.get("completed"):
         raise HTTPException(status_code=400, detail="Session already completed")

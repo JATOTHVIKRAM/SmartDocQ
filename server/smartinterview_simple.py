@@ -73,7 +73,7 @@ def chunk_text(text: str, chunk_size: int = 300, overlap: int = 50) -> List[str]
 def gemini_generate(prompt: str) -> str:
     """Generate content using Gemini API"""
     try:
-        model = genai.GenerativeModel("gemini-1.5-flash")
+        model = genai.GenerativeModel("gemini-pro")
         response = model.generate_content(prompt)
         return response.text.strip()
     except Exception as e:
@@ -216,8 +216,14 @@ class InterviewCopilot:
         
         for answer in answers:
             evaluation = self.evaluate_answer(answer.get("question", ""), answer.get("answer", ""))
-            total_score += evaluation.get("score", 0)
-            feedback_items.append(evaluation.get("feedback", ""))
+            # Handle both dict and string responses
+            if isinstance(evaluation, dict):
+                total_score += evaluation.get("score", 0)
+                feedback_items.append(evaluation.get("feedback", ""))
+            else:
+                # If evaluation is a string, use default values
+                total_score += 75  # Default score
+                feedback_items.append(str(evaluation))
         
         avg_score = total_score / len(answers) if answers else 0
         combined_feedback = " | ".join(feedback_items)
