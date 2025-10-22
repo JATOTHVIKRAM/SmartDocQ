@@ -1,0 +1,14 @@
+### Prompt for Landing Page
+
+Design a landing page for "SmartDocQ - Your AI Assistant for Smarter Document Q&A" with the following:
+
+- A header with a dark background (black) and blue accents, including "Login" and "Sign Up" buttons on the right, styled with neon blue highlights.
+- The main title "SmartDocQ - Your AI Assistant for Smarter Document Q&A" centered at the top, with a caption below it: "Transforming document search into a smart, interactive experience" in a slightly smaller blue font.
+- A main block divided into two equal vertical halves using a Bootstrap grid layout (col-md-6), featuring two floating cards with subtle shadows and rounded corners:
+  - Left card titled "Smart Documentation" with a placeholder for a GPT-like interface, including a text input field and a send button with neon blue styling.
+  - Right card titled "Interview Copilot" with a placeholder for a Q&A interface, showing a sample question and answer pair in blue text.
+- Use a black and blue theme as shown in the reference images, with a dark background (#1A1A2E), neon blue accents (#00D4FF) for buttons, text highlights, and card borders, and a modern, sleek design.
+- Include a footer with a dark background (#1A1A2E) and blue text (#00D4FF) for copyright information (e.g., "© 2025 SmartDocQ. All rights reserved.").
+- Ensure the design is fully responsive, adapting to mobile and tablet screens, and aligns with the Bootstrap grid markup reference provided.
+
+---  take the  screen as a refernce for the bettter output and make it extraordinary                 Please develop the complete frontend for our project by incorporating both the login and signup pages. Additionally, upon the first visit to the page, the Smart Documentation and Interview Copilot sections should only display an overview along with a "Try" option for both features. I would like the overall theme to align with the sample images I provided in the previous sections, ensuring that the design is consistent and visually appealing. Please implement smooth transition effects to enhance user experience. Furthermore, when users click on the Interview Copilot or Smart Documentation, they should be prompted to upload files in formats such as HTML, DOC, and TXT. Once the files are uploaded, the system should parse them and open the interface similar to the current ChatGPT layout, featuring the main chat screen for asking questions on the left side, with a header and account options positioned at the top right, along with an aesthetically pleasing header design. Please structure the output in a clear, organized manner that includes all the specified elements and functionalities.
