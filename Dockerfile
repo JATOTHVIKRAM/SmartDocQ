@@ -8,15 +8,12 @@ RUN apt-get update && apt-get install -y \
     g++ \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements first for better caching
-COPY server/requirements.txt .
+# Copy all server files
+COPY server/ .
 
 # Install Python dependencies
 RUN pip install --upgrade pip setuptools wheel
 RUN pip install -r requirements.txt
-
-# Copy application code
-COPY server/ .
 
 # Expose port
 EXPOSE 8000
