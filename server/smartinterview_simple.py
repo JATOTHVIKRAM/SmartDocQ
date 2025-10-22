@@ -184,7 +184,18 @@ class InterviewCopilot:
         """
         
         response = gemini_generate(prompt)
+        print(f"DEBUG: Gemini evaluation response type: {type(response)}")
         print(f"DEBUG: Gemini evaluation response: {response}")
+        
+        # Check if response is an error string
+        if isinstance(response, str) and response.startswith("Error"):
+            print(f"DEBUG: Gemini returned error, using fallback")
+            score = self._fallback_score_evaluation(question, answer, context)
+            return {
+                "score": score,
+                "feedback": f"Answer evaluated using content analysis. Score based on relevance, structure, and detail.",
+                "suggestions": "Provide more specific examples and detailed explanations to improve your score."
+            }
         
         try:
             # Try to extract JSON from the response
@@ -318,6 +329,8 @@ class InterviewCopilot:
         for i, answer in enumerate(answers):
             print(f"DEBUG: Evaluating answer {i+1}: {answer.get('question', 'No question')[:50]}...")
             evaluation = self.evaluate_answer(answer.get("question", ""), answer.get("answer", ""))
+            print(f"DEBUG: Evaluation result type: {type(evaluation)}")
+            print(f"DEBUG: Evaluation result: {evaluation}")
             
             # Handle both dict and string responses
             if isinstance(evaluation, dict):
