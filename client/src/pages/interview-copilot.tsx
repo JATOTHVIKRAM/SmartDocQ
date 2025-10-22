@@ -825,7 +825,7 @@ export default function InterviewCopilot({
                     {fb.correct_answer && (
                       <div className="text-sm text-green-600 mt-1"><strong>Correct answer:</strong> {fb.correct_answer}</div>
                     )}
-                    <div className="text-sm mt-1"><strong>Score:</strong> {fb.score}/10</div>
+                    <div className="text-sm mt-1"><strong>Score:</strong> {fb.score}/100</div>
                     <div className="text-sm mt-1 text-text-secondary"><strong>Feedback:</strong> {fb.feedback}</div>
                   </div>
                 ))}

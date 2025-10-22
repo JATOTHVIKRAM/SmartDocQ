@@ -151,7 +151,7 @@ class InterviewCopilot:
     # Answer Evaluation
     # -------------------------
     def evaluate_answer(self, question: str, answer: str) -> dict:
-        """Evaluate user's answer and provide feedback."""
+        """Evaluate user's answer and provide feedback using Gemini AI."""
         if not self.chunks:
             return {"score": 0, "feedback": "No document loaded for evaluation."}
 
@@ -173,15 +173,18 @@ class InterviewCopilot:
         3. DEPTH (0-25 points): How detailed and comprehensive is the answer?
         4. CLARITY (0-15 points): How clear and well-structured is the response?
         
-        Provide specific feedback on what was good and what could be improved.
+        IMPORTANT: You MUST respond with ONLY valid JSON. No additional text or explanations.
         
-        Respond in this EXACT JSON format (no additional text):
+        Respond in this EXACT JSON format:
         {{
             "score": 85,
             "feedback": "Your answer demonstrates good understanding of the topic. You correctly identified the key concepts and provided relevant examples. The explanation was clear and well-structured.",
             "suggestions": "To improve further, consider adding more specific details from the document and providing concrete examples to support your points."
         }}
         """
+        
+        print(f"DEBUG: Evaluating question: {question[:50]}...")
+        print(f"DEBUG: Evaluating answer: {answer[:50]}...")
         
         response = gemini_generate(prompt)
         print(f"DEBUG: Gemini evaluation response type: {type(response)}")
@@ -204,16 +207,19 @@ class InterviewCopilot:
             if json_match:
                 json_str = json_match.group()
                 evaluation = json.loads(json_str)
+                
+                # Validate the response has required fields
+                if not isinstance(evaluation.get("score"), (int, float)):
+                    evaluation["score"] = self._fallback_score_evaluation(question, answer, context)
+                if not evaluation.get("feedback"):
+                    evaluation["feedback"] = "Answer shows understanding of the topic."
+                if not evaluation.get("suggestions"):
+                    evaluation["suggestions"] = "Could provide more specific examples."
+                
+                print(f"DEBUG: Successfully parsed Gemini evaluation: {evaluation}")
+                return evaluation
             else:
                 raise ValueError("No JSON found in response")
-                
-            # Validate the response has required fields
-            if not isinstance(evaluation.get("score"), (int, float)):
-                evaluation["score"] = 75
-            if not evaluation.get("feedback"):
-                evaluation["feedback"] = "Answer shows understanding of the topic."
-            if not evaluation.get("suggestions"):
-                evaluation["suggestions"] = "Could provide more specific examples."
                 
         except Exception as e:
             print(f"DEBUG: JSON parsing error: {str(e)}")
@@ -260,9 +266,13 @@ class InterviewCopilot:
             score += 5   # Answer doesn't relate to question
         
         # Check for common wrong answer indicators
-        wrong_indicators = ['i don\'t know', 'no idea', 'not sure', 'maybe', 'i think', 'probably', 'wrong', 'incorrect']
+        wrong_indicators = ['i don\'t know', 'no idea', 'not sure', 'maybe', 'i think', 'probably', 'wrong', 'incorrect', 'i have no idea', 'i\'m not sure', 'i don\'t understand']
         if any(indicator in answer_lower for indicator in wrong_indicators):
-            score -= 15  # Penalty for uncertainty/wrong indicators
+            score -= 25  # Heavy penalty for uncertainty/wrong indicators
+        
+        # Check for completely wrong answers
+        if 'wrong' in answer_lower or 'incorrect' in answer_lower or 'false' in answer_lower:
+            score -= 30  # Heavy penalty for explicitly wrong answers
         
         # Check for good answer indicators
         good_indicators = ['because', 'therefore', 'example', 'specifically', 'detail', 'explain', 'demonstrate']
@@ -366,4 +376,5 @@ class InterviewCopilot:
         
         print(f"DEBUG: Average score: {avg_score}, Feedback: {combined_feedback[:100]}...")
         
-        return round(avg_score, 2), combined_feedback
+        # Return detailed feedback for each answer instead of combined text
+        return avg_score, detailed_feedback
