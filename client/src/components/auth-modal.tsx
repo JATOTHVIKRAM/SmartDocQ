@@ -54,7 +54,7 @@ export default function AuthModal({ type, onClose, onSwitch, onAuthSuccess }: Au
   const onLoginSubmit = async (data: z.infer<typeof loginSchema>) => {
     setIsLoading(true);
     try {
-      const res = await fetch("http://127.0.0.1:8000/api/login", {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
@@ -84,7 +84,7 @@ export default function AuthModal({ type, onClose, onSwitch, onAuthSuccess }: Au
   const onSignupSubmit = async (data: z.infer<typeof signupSchema>) => {
     setIsLoading(true);
     try {
-      const res = await fetch("http://127.0.0.1:8000/api/signup", {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/signup`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

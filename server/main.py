@@ -390,7 +390,7 @@ from dotenv import load_dotenv
 from pymongo import MongoClient
 
 # Import your existing DocumentQA (unchanged) and InterviewCopilot (from smartinterview.py)
-from smartmodel import DocumentQA  # existing model import (unchanged)
+from smartmodel_simple import DocumentQA  # Use simplified version
 from smartinterview import InterviewCopilot  # assumes smartinterview.py is next to this file
 
 # ------------------------
@@ -423,7 +423,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
 
-# Allow frontend origin(s) during development
+# Allow frontend origin(s) during development and production
 origins = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
@@ -433,6 +433,8 @@ origins = [
     "http://127.0.0.1:5000",
     "http://localhost:8000",
     "http://127.0.0.1:8000",
+    # Add your Netlify domain here (replace with actual URL)
+    "https://your-app-name.netlify.app",
 ]
 
 app.add_middleware(

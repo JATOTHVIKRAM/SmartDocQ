@@ -41,7 +41,7 @@ export default function SmartDocumentation({
   userEmail, 
   onLogout 
 }: SmartDocumentationProps) {
-  const API_BASE = "http://127.0.0.1:8000/api";
+  const API_BASE = import.meta.env.VITE_API_URL;
   const [documents, setDocuments] = useState<Document[]>([]);
   const [chatSessions, setChatSessions] = useState<ChatSession[]>([]);
   const [currentChatId, setCurrentChatId] = useState<string>("");
