@@ -434,7 +434,7 @@ origins = [
     "http://localhost:8000",
     "http://127.0.0.1:8000",
     # Add your Netlify domain here (replace with actual URL)
-    "https://your-app-name.netlify.app",
+    "https://smartdog.netlify.app",
 ]
 
 app.add_middleware(
