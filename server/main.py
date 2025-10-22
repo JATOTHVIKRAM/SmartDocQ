@@ -565,7 +565,7 @@ def verify_token(creds: HTTPAuthorizationCredentials = Depends(security)) -> dic
     except Exception:
         raise HTTPException(status_code=401, detail="Invalid token")
 
-def verify_token_optional(creds: Optional[HTTPAuthorizationCredentials] = Depends(security)) -> Optional[dict]:
+def verify_token_optional(creds: Optional[HTTPAuthorizationCredentials] = None) -> Optional[dict]:
     """
     Optional token verifier. Returns user payload if token is valid, None otherwise.
     Does not raise exceptions for missing or invalid tokens.
@@ -767,15 +767,19 @@ async def create_chat_session_endpoint(
     creds: Optional[HTTPAuthorizationCredentials] = Depends(security)
 ):
     """Create a new chat session."""
-    user_payload = verify_token_optional(creds)
-    
-    session_id = create_chat_session(
-        title=title,
-        document_name=document_name,
-        user_id=user_payload.get("id") if user_payload else None
-    )
-    
-    return {"session_id": session_id}
+    try:
+        user_payload = verify_token_optional(creds)
+        
+        session_id = create_chat_session(
+            title=title,
+            document_name=document_name,
+            user_id=user_payload.get("id") if user_payload else None
+        )
+        
+        return {"session_id": session_id}
+    except Exception as e:
+        print(f"Error creating chat session: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to create chat session: {str(e)}")
 
 @app.get("/api/chat/sessions", response_model=List[ChatSessionResponse])
 async def get_chat_sessions(
