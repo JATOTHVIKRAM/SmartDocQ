@@ -191,8 +191,8 @@ class InterviewCopilot:
         print(f"DEBUG: Gemini evaluation response: {response}")
         
         # Check if response is an error string
-        if isinstance(response, str) and response.startswith("Error"):
-            print(f"DEBUG: Gemini returned error, using fallback")
+        if isinstance(response, str) and (response.startswith("Error") or response.startswith("⚠️")):
+            print(f"DEBUG: Gemini returned error: {response}")
             score = self._fallback_score_evaluation(question, answer, context)
             return {
                 "score": score,
@@ -237,9 +237,19 @@ class InterviewCopilot:
     def _fallback_score_evaluation(self, question: str, answer: str, context: str) -> int:
         """Fallback scoring when Gemini JSON parsing fails - actually evaluates content"""
         if not answer or len(answer.strip()) < 5:
-            return 20  # Very short or empty answer
+            return 15  # Very short or empty answer
         
         score = 0
+        answer_lower = answer.lower().strip()
+        
+        # Check for completely wrong/uncertain answers first
+        wrong_indicators = ['i don\'t know', 'no idea', 'not sure', 'maybe', 'i think', 'probably', 'wrong', 'incorrect', 'i have no idea', 'i\'m not sure', 'i don\'t understand', 'idk', 'dunno']
+        if any(indicator in answer_lower for indicator in wrong_indicators):
+            return 20  # Very low score for uncertain answers
+        
+        # Check for explicitly wrong answers
+        if 'wrong' in answer_lower or 'incorrect' in answer_lower or 'false' in answer_lower or 'no' in answer_lower:
+            return 25  # Low score for wrong answers
         
         # Length scoring (0-20 points)
         if len(answer) >= 100:
@@ -252,7 +262,6 @@ class InterviewCopilot:
             score += 5
         
         # Content analysis (0-40 points)
-        answer_lower = answer.lower()
         question_lower = question.lower()
         
         # Check if answer addresses the question
@@ -261,23 +270,14 @@ class InterviewCopilot:
         common_words = question_words.intersection(answer_words)
         
         if len(common_words) > 0:
-            score += 20  # Answer relates to question
+            score += 25  # Answer relates to question
         else:
             score += 5   # Answer doesn't relate to question
         
-        # Check for common wrong answer indicators
-        wrong_indicators = ['i don\'t know', 'no idea', 'not sure', 'maybe', 'i think', 'probably', 'wrong', 'incorrect', 'i have no idea', 'i\'m not sure', 'i don\'t understand']
-        if any(indicator in answer_lower for indicator in wrong_indicators):
-            score -= 25  # Heavy penalty for uncertainty/wrong indicators
-        
-        # Check for completely wrong answers
-        if 'wrong' in answer_lower or 'incorrect' in answer_lower or 'false' in answer_lower:
-            score -= 30  # Heavy penalty for explicitly wrong answers
-        
         # Check for good answer indicators
-        good_indicators = ['because', 'therefore', 'example', 'specifically', 'detail', 'explain', 'demonstrate']
+        good_indicators = ['because', 'therefore', 'example', 'specifically', 'detail', 'explain', 'demonstrate', 'according to', 'based on']
         if any(indicator in answer_lower for indicator in good_indicators):
-            score += 15  # Bonus for detailed explanations
+            score += 20  # Bonus for detailed explanations
         
         # Context relevance (0-20 points)
         if context:

@@ -1037,6 +1037,34 @@ def interview_review(session_id: str):
         "avg_score": session["avg_score"],
     }
 
+@app.get("/api/debug/test-evaluation")
+async def test_evaluation():
+    """Test endpoint to check if Gemini evaluation is working"""
+    try:
+        from smartinterview_simple import InterviewCopilot
+        
+        # Create a test instance
+        bot = InterviewCopilot()
+        bot.chunks = ["This is a test document about artificial intelligence and machine learning."]
+        
+        # Test evaluation
+        result = bot.evaluate_answer(
+            "What is artificial intelligence?", 
+            "I don't know"
+        )
+        
+        return {
+            "status": "success",
+            "test_result": result,
+            "message": "Evaluation test completed"
+        }
+    except Exception as e:
+        return {
+            "status": "error",
+            "error": str(e),
+            "message": "Evaluation test failed"
+        }
+
 @app.get("/api/debug/models")
 def debug_models():
     """Debug endpoint to check available Gemini models"""
