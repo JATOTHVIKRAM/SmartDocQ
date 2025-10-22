@@ -125,10 +125,22 @@ class SimpleDocumentQA:
         self.tfidf_matrix = None
         return "Cache cleared"
 
+def list_available_models():
+    """List available Gemini models for debugging"""
+    try:
+        models = genai.list_models()
+        available_models = []
+        for model in models:
+            if 'generateContent' in model.supported_generation_methods:
+                available_models.append(model.name)
+        return available_models
+    except Exception as e:
+        return f"Error listing models: {str(e)}"
+
 def ask_gemini_with_context(query: str, context_chunks: List[str]) -> str:
     """Ask Gemini with document context"""
     try:
-        model = genai.GenerativeModel("gemini-pro")
+        model = genai.GenerativeModel("gemini-1.5-pro")
         
         context_text = "\n".join(context_chunks)
         prompt = f"""

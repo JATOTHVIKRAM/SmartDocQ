@@ -1028,6 +1028,16 @@ def interview_review(session_id: str):
         "avg_score": session["avg_score"],
     }
 
+@app.get("/api/debug/models")
+def debug_models():
+    """Debug endpoint to check available Gemini models"""
+    try:
+        from smartmodel_simple import list_available_models
+        models = list_available_models()
+        return {"available_models": models}
+    except Exception as e:
+        return {"error": str(e)}
+
 # ------------------------
 # Health & Misc
 # ------------------------
