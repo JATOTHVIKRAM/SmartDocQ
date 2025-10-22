@@ -128,6 +128,80 @@ class InterviewCopilot:
         # Create context from chunks
         context = "\n".join(self.chunks[:5])  # Use first 5 chunks for context
 
+        # Check if this is MCQ type
+        if qtype and qtype.lower() == "mcq":
+            return self._generate_mcq_questions(num_questions, level, context)
+        else:
+            return self._generate_text_questions(num_questions, level, qtype, context)
+
+    def _generate_mcq_questions(self, num_questions: int, level: str, context: str) -> List[str]:
+        """Generate MCQ questions with options"""
+        prompt = f"""
+        Based on the following document content, generate {num_questions} Multiple Choice Questions (MCQ).
+        
+        Question Level: {level}
+        
+        Document Content:
+        {context}
+        
+        For each question, provide:
+        1. A clear question
+        2. Four options (A, B, C, D)
+        3. The correct answer
+        
+        Respond in this EXACT JSON format:
+        [
+            {{
+                "question": "What is the main topic discussed in the document?",
+                "options": [
+                    "A) Option 1",
+                    "B) Option 2", 
+                    "C) Option 3",
+                    "D) Option 4"
+                ],
+                "correct": "A) Option 1"
+            }}
+        ]
+        
+        Generate {num_questions} relevant MCQ questions that test understanding of this content.
+        """
+        
+        response = gemini_generate(prompt)
+        print(f"DEBUG: MCQ generation response: {response}")
+        
+        try:
+            import json
+            import re
+            
+            # Try to extract JSON from the response
+            json_match = re.search(r'\[.*\]', response, re.DOTALL)
+            if json_match:
+                json_str = json_match.group()
+                structured_questions = json.loads(json_str)
+                
+                # Validate and clean up the questions
+                validated_questions = []
+                for item in structured_questions:
+                    if isinstance(item, dict) and item.get("question") and item.get("options"):
+                        validated_questions.append({
+                            "question": str(item["question"]).strip(),
+                            "options": [str(opt).strip() for opt in item["options"] if str(opt).strip()],
+                            "correct": str(item.get("correct", "")).strip()
+                        })
+                
+                if len(validated_questions) >= num_questions:
+                    self.structured_questions = validated_questions[:num_questions]
+                    self.questions = [q["question"] for q in self.structured_questions]
+                    return self.questions
+        except Exception as e:
+            print(f"DEBUG: MCQ JSON parsing failed: {str(e)}")
+        
+        # Fallback to text questions if MCQ generation fails
+        print("DEBUG: Falling back to text questions")
+        return self._generate_text_questions(num_questions, level, "general", context)
+
+    def _generate_text_questions(self, num_questions: int, level: str, qtype: Optional[str], context: str) -> List[str]:
+        """Generate regular text questions"""
         prompt = f"""
         Based on the following document content, generate {num_questions} interview questions.
         
