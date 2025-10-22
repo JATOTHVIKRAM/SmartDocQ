@@ -206,21 +206,20 @@ class InterviewCopilot:
                 "message": f"Failed to start interview: {str(e)}"
             }
 
-    def submit_answer(self, question: str, answer: str) -> dict:
-        """Submit an answer for evaluation."""
-        try:
-            evaluation = self.evaluate_answer(question, answer)
-            self.feedback.append({
-                "question": question,
-                "answer": answer,
-                "evaluation": evaluation
-            })
-            return {
-                "status": "success",
-                "evaluation": evaluation
-            }
-        except Exception as e:
-            return {
-                "status": "error",
-                "message": f"Failed to evaluate answer: {str(e)}"
-            }
+    def evaluate_answers(self, answers: List[dict]) -> tuple:
+        """Evaluate multiple answers and return average score and feedback."""
+        if not answers:
+            return 0, "No answers provided"
+        
+        total_score = 0
+        feedback_items = []
+        
+        for answer in answers:
+            evaluation = self.evaluate_answer(answer.get("question", ""), answer.get("answer", ""))
+            total_score += evaluation.get("score", 0)
+            feedback_items.append(evaluation.get("feedback", ""))
+        
+        avg_score = total_score / len(answers) if answers else 0
+        combined_feedback = " | ".join(feedback_items)
+        
+        return round(avg_score, 2), combined_feedback
