@@ -1,4 +1,3 @@
-# SmartDocQ Backend Dockerfile - Updated for Render deployment
 FROM python:3.11-slim
 
 WORKDIR /app
