@@ -1,8 +1,8 @@
 #!/bin/bash
 set -e
 
-# Upgrade pip first
-pip install --upgrade pip
+# Install setuptools and wheel first
+pip install --upgrade pip setuptools wheel
 
 # Install packages
 pip install -r requirements.txt
