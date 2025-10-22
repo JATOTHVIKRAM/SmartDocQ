@@ -1044,12 +1044,3 @@ def debug_models():
 @app.get("/")
 def read_root():
     return {"message": "SmartDocQ Backend running."}
-
-# Catch-all route for debugging 404 errors
-@app.api_route("/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"])
-async def catch_all(path: str):
-    return {"error": f"Endpoint not found: /{path}", "available_endpoints": [
-        "/api/signup", "/api/login", "/api/logout", "/api/upload", "/api/chat",
-        "/api/chat/sessions", "/api/interview/start", "/api/interview/{session_id}/submit",
-        "/api/interview/{session_id}/review", "/api/smart"
-    ]}

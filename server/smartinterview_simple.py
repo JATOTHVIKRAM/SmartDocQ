@@ -159,26 +159,27 @@ class InterviewCopilot:
         context = "\n".join(self.chunks[:3])
 
         prompt = f"""
-        Evaluate this interview answer based on the document content.
+        You are an expert interviewer evaluating a candidate's answer. Rate this answer based on the document content.
         
         Question: {question}
-        Answer: {answer}
+        Candidate's Answer: {answer}
         
-        Document Context:
+        Document Context (for reference):
         {context}
         
-        Rate the answer on:
-        1. Accuracy (0-40 points)
-        2. Completeness (0-30 points) 
-        3. Clarity (0-30 points)
+        Evaluation Criteria:
+        1. RELEVANCE (0-30 points): How well does the answer address the question?
+        2. ACCURACY (0-30 points): How accurate is the information based on the document?
+        3. DEPTH (0-25 points): How detailed and comprehensive is the answer?
+        4. CLARITY (0-15 points): How clear and well-structured is the response?
         
-        Provide detailed feedback and suggestions.
+        Provide specific feedback on what was good and what could be improved.
         
-        Respond in this EXACT JSON format:
+        Respond in this EXACT JSON format (no additional text):
         {{
             "score": 85,
-            "feedback": "Good understanding of concepts. You demonstrated knowledge of the topic and provided relevant information.",
-            "suggestions": "Add more specific examples to strengthen your answer."
+            "feedback": "Your answer demonstrates good understanding of the topic. You correctly identified the key concepts and provided relevant examples. The explanation was clear and well-structured.",
+            "suggestions": "To improve further, consider adding more specific details from the document and providing concrete examples to support your points."
         }}
         """
         
