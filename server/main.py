@@ -381,6 +381,7 @@ from fastapi import (
     status,
     Body,
 )
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel, EmailStr, constr
@@ -985,18 +986,23 @@ def submit_answers(session_id: str, payload: SubmitAnswersRequest):
                             "suggestions": fb.get("suggestions", "")
                         })
                 else:
-                    # Fallback evaluation
-                    avg_score = 75
-                    feedback = [{"question": "Overall", "user_answer": "Multiple answers", "score": avg_score, "feedback": "Answers evaluated successfully"}]
+                    # Fallback evaluation - use proper AI evaluation
+                    avg_score, feedback = interview_bot.evaluate_answers(answers)
             except Exception as eval_error:
                 print(f"Evaluation error: {str(eval_error)}")
-                avg_score = 70
-                feedback = [{"question": "Overall", "user_answer": "Multiple answers", "score": avg_score, "feedback": "Evaluation completed with default scoring"}]
+                # Use proper fallback evaluation instead of default score
+                avg_score, feedback = interview_bot.evaluate_answers(answers)
     except Exception as e:
         print(f"Main evaluation error: {str(e)}")
-        # Fallback to default values instead of raising error
-        avg_score = 70
-        feedback = [{"question": "Overall", "answer": "Multiple answers", "score": avg_score, "feedback": "Evaluation completed with default scoring"}]
+        # Use proper fallback evaluation instead of default score
+        try:
+            avg_score, feedback = interview_bot.evaluate_answers(answers)
+        except:
+            # Last resort: return error instead of fake score
+            return JSONResponse(
+                status_code=500,
+                content={"detail": f"Evaluation failed: {str(e)}"}
+            )
 
     # Save results into session and mark completed
     session["answers"] = answers
