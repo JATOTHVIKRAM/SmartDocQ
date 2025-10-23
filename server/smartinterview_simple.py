@@ -363,7 +363,7 @@ class InterviewCopilot:
                 "difficulty": difficulty
             }
         else:
-            # Standard evaluation for general questions
+            # Standard evaluation for general questions using AI
             prompt = f"""
         You are an expert interviewer evaluating a candidate's answer. Rate this answer based on the document content.
         
@@ -389,69 +389,69 @@ class InterviewCopilot:
             "status": "Partially Correct"
         }}
         
-            Status should be one of: "Correct", "Partially Correct", or "Incorrect"
-            """
+        Status should be one of: "Correct", "Partially Correct", or "Incorrect"
+        """
         
-        print(f"DEBUG: Evaluating question: {question[:50]}...")
-        print(f"DEBUG: Evaluating answer: {answer[:50]}...")
-        
-        response = gemini_generate(prompt)
-        print(f"DEBUG: Gemini evaluation response type: {type(response)}")
-        print(f"DEBUG: Gemini evaluation response: {response}")
-        
-        # Check if response is an error string
-        if isinstance(response, str) and (response.startswith("Error") or response.startswith("⚠️")):
-            print(f"DEBUG: Gemini returned error: {response}")
-            score = self._fallback_score_evaluation(question, answer, context)
-            return {
-                "score": score,
-                "feedback": f"Answer evaluated using content analysis. Score based on relevance, structure, and detail.",
-                "suggestions": "Provide more specific examples and detailed explanations to improve your score.",
-                "status": "Partially Correct",
-                "model_answer": model_answer or "No model answer available"
-            }
-        
-        try:
-            # Try to extract JSON from the response
-            import re
-            json_match = re.search(r'\{.*\}', response, re.DOTALL)
-            if json_match:
-                json_str = json_match.group()
-                evaluation = json.loads(json_str)
-                
-                # Validate the response has required fields
-                if not isinstance(evaluation.get("score"), (int, float)):
-                    evaluation["score"] = self._fallback_score_evaluation(question, answer, context)
-                if not evaluation.get("feedback"):
-                    evaluation["feedback"] = "Answer shows understanding of the topic."
-                if not evaluation.get("suggestions"):
-                    evaluation["suggestions"] = "Could provide more specific examples."
-                if not evaluation.get("status"):
-                    evaluation["status"] = "Partially Correct"
-                
-                # Add model answer if available
-                if model_answer:
-                    evaluation["model_answer"] = model_answer
-                
-                print(f"DEBUG: Successfully parsed Gemini evaluation: {evaluation}")
-                return evaluation
-            else:
-                raise ValueError("No JSON found in response")
-                
-        except Exception as e:
-            print(f"DEBUG: JSON parsing error: {str(e)}")
-            # Fallback evaluation based on answer content analysis
-            score = self._fallback_score_evaluation(question, answer, context)
-            evaluation = {
-                "score": score,
-                "feedback": f"Answer evaluated using content analysis. Score based on relevance, structure, and detail.",
-                "suggestions": "Provide more specific examples and detailed explanations to improve your score.",
-                "status": "Partially Correct",
-                "model_answer": model_answer or "No model answer available"
-            }
-        
-        print(f"DEBUG: Final evaluation: {evaluation}")
-        return evaluation
+            print(f"DEBUG: Evaluating question: {question[:50]}...")
+            print(f"DEBUG: Evaluating answer: {answer[:50]}...")
+            
+            response = gemini_generate(prompt)
+            print(f"DEBUG: Gemini evaluation response type: {type(response)}")
+            print(f"DEBUG: Gemini evaluation response: {response}")
+            
+            # Check if response is an error string
+            if isinstance(response, str) and (response.startswith("Error") or response.startswith("⚠️")):
+                print(f"DEBUG: Gemini returned error: {response}")
+                score = self._fallback_score_evaluation(question, answer, context)
+                return {
+                    "score": score,
+                    "feedback": f"Answer evaluated using content analysis. Score based on relevance, structure, and detail.",
+                    "suggestions": "Provide more specific examples and detailed explanations to improve your score.",
+                    "status": "Partially Correct",
+                    "model_answer": model_answer or "No model answer available"
+                }
+            
+            try:
+                # Try to extract JSON from the response
+                import re
+                json_match = re.search(r'\{.*\}', response, re.DOTALL)
+                if json_match:
+                    json_str = json_match.group()
+                    evaluation = json.loads(json_str)
+                    
+                    # Validate the response has required fields
+                    if not isinstance(evaluation.get("score"), (int, float)):
+                        evaluation["score"] = self._fallback_score_evaluation(question, answer, context)
+                    if not evaluation.get("feedback"):
+                        evaluation["feedback"] = "Answer shows understanding of the topic."
+                    if not evaluation.get("suggestions"):
+                        evaluation["suggestions"] = "Could provide more specific examples."
+                    if not evaluation.get("status"):
+                        evaluation["status"] = "Partially Correct"
+                    
+                    # Add model answer if available
+                    if model_answer:
+                        evaluation["model_answer"] = model_answer
+                    
+                    print(f"DEBUG: Successfully parsed Gemini evaluation: {evaluation}")
+                    return evaluation
+                else:
+                    raise ValueError("No JSON found in response")
+                    
+            except Exception as e:
+                print(f"DEBUG: JSON parsing error: {str(e)}")
+                # Fallback evaluation based on answer content analysis
+                score = self._fallback_score_evaluation(question, answer, context)
+                evaluation = {
+                    "score": score,
+                    "feedback": f"Answer evaluated using content analysis. Score based on relevance, structure, and detail.",
+                    "suggestions": "Provide more specific examples and detailed explanations to improve your score.",
+                    "status": "Partially Correct",
+                    "model_answer": model_answer or "No model answer available"
+                }
+            
+            print(f"DEBUG: Final evaluation: {evaluation}")
+            return evaluation
 
     def _calculate_semantic_similarity(self, user_answer: str, model_answer: str, key_concepts: List[str]) -> float:
         """Calculate semantic similarity between user answer and model answer"""
@@ -615,6 +615,9 @@ class InterviewCopilot:
                 score = evaluation.get("score", 0)
                 feedback = evaluation.get("feedback", "No feedback provided")
                 suggestions = evaluation.get("suggestions", "")
+                status = evaluation.get("status", "Partially Correct")
+                model_answer = evaluation.get("model_answer", "")
+                similarity = evaluation.get("similarity", 0.0)
                 
                 total_score += score
                 feedback_items.append(feedback)
@@ -625,18 +628,25 @@ class InterviewCopilot:
                     "answer": answer.get("answer", ""),
                     "score": score,
                     "feedback": feedback,
-                    "suggestions": suggestions
+                    "suggestions": suggestions,
+                    "status": status,
+                    "model_answer": model_answer,
+                    "similarity": similarity
                 })
             else:
-                # If evaluation is a string, use default values
-                total_score += 75  # Default score
-                feedback_items.append(str(evaluation))
+                # If evaluation is a string, use fallback evaluation
+                score = self._fallback_score_evaluation(answer.get("question", ""), answer.get("answer", ""), "")
+                total_score += score
+                feedback_items.append(f"Answer evaluated using content analysis. Score: {score}/100")
                 detailed_feedback.append({
                     "question": answer.get("question", f"Question {i+1}"),
                     "answer": answer.get("answer", ""),
-                    "score": 75,
-                    "feedback": str(evaluation),
-                    "suggestions": "Could provide more specific examples."
+                    "score": score,
+                    "feedback": f"Answer evaluated using content analysis. Score based on relevance, structure, and detail.",
+                    "suggestions": "Provide more specific examples and detailed explanations to improve your score.",
+                    "status": "Partially Correct",
+                    "model_answer": "No model answer available",
+                    "similarity": 0.0
                 })
         
         avg_score = total_score / len(answers) if answers else 0
