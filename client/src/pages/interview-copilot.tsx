@@ -800,12 +800,10 @@ export default function InterviewCopilot({
                     <Button
                       onClick={async () => {
                         await submitAnswers();
-                        // Navigate to review page
-                        setLocation("/interview-review");
                       }}
                       className="w-full bg-green-600 hover:bg-green-700"
                     >
-                      Submit All Answers & View Review
+                      Submit All Answers
                     </Button>
                   </div>
                 )}
