@@ -363,69 +363,34 @@ class InterviewCopilot:
                 "difficulty": difficulty
             }
         else:
-            # Enhanced evaluation for technical questions with model answers
-            prompt = f"""
-            You are an expert technical interviewer evaluating a candidate's answer. Compare the candidate's answer with the model answer and key points.
-            
-            Question: {question}
-            Candidate's Answer: {answer}
-            
-            Model Answer: {model_answer}
-            Key Points to Cover: {', '.join(key_points)}
-            
-            Document Context (for reference):
-            {context}
-            
-            Evaluation Criteria:
-            1. ACCURACY (0-40 points): How accurate is the information compared to the model answer?
-            2. COMPLETENESS (0-30 points): How many key points are covered?
-            3. CLARITY (0-20 points): How clear and well-structured is the response?
-            4. DEPTH (0-10 points): How detailed and comprehensive is the answer?
-            
-            Provide specific feedback on what was good and what could be improved.
-            Compare with the model answer and mention which key points were covered or missed.
-            
-            IMPORTANT: You MUST respond with ONLY valid JSON. No additional text or explanations.
-            
-            Respond in this EXACT JSON format:
-            {{
-                "score": 85,
-                "feedback": "Your answer demonstrates good understanding. You covered most key points including [specific points]. However, you could improve by mentioning [missing points].",
-                "suggestions": "To improve further, consider adding more details about [specific areas] and providing concrete examples.",
-                "status": "Partially Correct"
-            }}
-            
-            Status should be one of: "Correct", "Partially Correct", or "Incorrect"
-            """
-        else:
-            # Standard evaluation for general questions
-            prompt = f"""
-            You are an expert interviewer evaluating a candidate's answer. Rate this answer based on the document content.
-            
-            Question: {question}
-            Candidate's Answer: {answer}
-            
-            Document Context (for reference):
-            {context}
-            
-            Evaluation Criteria:
-            1. RELEVANCE (0-30 points): How well does the answer address the question?
-            2. ACCURACY (0-30 points): How accurate is the information based on the document?
-            3. DEPTH (0-25 points): How detailed and comprehensive is the answer?
-            4. CLARITY (0-15 points): How clear and well-structured is the response?
-            
-            IMPORTANT: You MUST respond with ONLY valid JSON. No additional text or explanations.
-            
-            Respond in this EXACT JSON format:
-            {{
-                "score": 85,
-                "feedback": "Your answer demonstrates good understanding of the topic. You correctly identified the key concepts and provided relevant examples. The explanation was clear and well-structured.",
-                "suggestions": "To improve further, consider adding more specific details from the document and providing concrete examples to support your points.",
-                "status": "Partially Correct"
-            }}
-            
-            Status should be one of: "Correct", "Partially Correct", or "Incorrect"
-            """
+        # Standard evaluation for general questions
+        prompt = f"""
+        You are an expert interviewer evaluating a candidate's answer. Rate this answer based on the document content.
+        
+        Question: {question}
+        Candidate's Answer: {answer}
+        
+        Document Context (for reference):
+        {context}
+        
+        Evaluation Criteria:
+        1. RELEVANCE (0-30 points): How well does the answer address the question?
+        2. ACCURACY (0-30 points): How accurate is the information based on the document?
+        3. DEPTH (0-25 points): How detailed and comprehensive is the answer?
+        4. CLARITY (0-15 points): How clear and well-structured is the response?
+        
+        IMPORTANT: You MUST respond with ONLY valid JSON. No additional text or explanations.
+        
+        Respond in this EXACT JSON format:
+        {{
+            "score": 85,
+            "feedback": "Your answer demonstrates good understanding of the topic. You correctly identified the key concepts and provided relevant examples. The explanation was clear and well-structured.",
+            "suggestions": "To improve further, consider adding more specific details from the document and providing concrete examples to support your points.",
+            "status": "Partially Correct"
+        }}
+        
+        Status should be one of: "Correct", "Partially Correct", or "Incorrect"
+        """
         
         print(f"DEBUG: Evaluating question: {question[:50]}...")
         print(f"DEBUG: Evaluating answer: {answer[:50]}...")
