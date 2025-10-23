@@ -141,7 +141,7 @@ export default function Upload() {
     formData.append("file", file);
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/upload`, {
+      const response = await fetch(`https://smartdocq-2-nt1q.onrender.com/api/upload`, {
         method: "POST",
         body: formData,
       });

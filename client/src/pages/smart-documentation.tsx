@@ -41,7 +41,7 @@ export default function SmartDocumentation({
   userEmail, 
   onLogout 
 }: SmartDocumentationProps) {
-  const API_BASE = import.meta.env.VITE_API_URL;
+  const API_BASE = "https://smartdocq-2-nt1q.onrender.com/api";
   const [documents, setDocuments] = useState<Document[]>([]);
   const [chatSessions, setChatSessions] = useState<ChatSession[]>([]);
   const [currentChatId, setCurrentChatId] = useState<string>("");

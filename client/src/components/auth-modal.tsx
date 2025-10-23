@@ -54,7 +54,7 @@ export default function AuthModal({ type, onClose, onSwitch, onAuthSuccess }: Au
   const onLoginSubmit = async (data: z.infer<typeof loginSchema>) => {
     setIsLoading(true);
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/login`, {
+      const res = await fetch(`https://smartdocq-2-nt1q.onrender.com/api/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
@@ -84,7 +84,7 @@ export default function AuthModal({ type, onClose, onSwitch, onAuthSuccess }: Au
   const onSignupSubmit = async (data: z.infer<typeof signupSchema>) => {
     setIsLoading(true);
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/signup`, {
+      const res = await fetch(`https://smartdocq-2-nt1q.onrender.com/api/signup`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
