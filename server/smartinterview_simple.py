@@ -363,8 +363,8 @@ class InterviewCopilot:
                 "difficulty": difficulty
             }
         else:
-        # Standard evaluation for general questions
-        prompt = f"""
+            # Standard evaluation for general questions
+            prompt = f"""
         You are an expert interviewer evaluating a candidate's answer. Rate this answer based on the document content.
         
         Question: {question}
@@ -389,8 +389,8 @@ class InterviewCopilot:
             "status": "Partially Correct"
         }}
         
-        Status should be one of: "Correct", "Partially Correct", or "Incorrect"
-        """
+            Status should be one of: "Correct", "Partially Correct", or "Incorrect"
+            """
         
         print(f"DEBUG: Evaluating question: {question[:50]}...")
         print(f"DEBUG: Evaluating answer: {answer[:50]}...")
