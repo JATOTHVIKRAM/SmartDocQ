@@ -66,7 +66,7 @@
 //     formData.append("level", typeToLevelMap[questionType] || "medium");
 
 //     try {
-//       const response = await fetch(`${import.meta.env.VITE_API_URL}/interview/start`, {
+//       const response = await fetch(`https://smartdocq-2-nt1q.onrender.com/api/interview/start`, {
 //         method: "POST",
 //         body: formData,
 //         headers: {
@@ -115,7 +115,7 @@
 //     if (!sessionId) return;
 
 //     try {
-//       const response = await fetch(`${import.meta.env.VITE_API_URL}/interview/${sessionId}/submit`, {
+//       const response = await fetch(`https://smartdocq-2-nt1q.onrender.com/api/interview/${sessionId}/submit`, {
 //         method: "POST",
 //         headers: {
 //           "Content-Type": "application/json",
@@ -458,7 +458,7 @@ export default function InterviewCopilot({
   formData.append("question_type", questionType);
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/interview/start`, {
+      const response = await fetch(`https://smartdocq-2-nt1q.onrender.com/api/interview/start`, {
         method: "POST",
         body: formData,
         headers: {
@@ -542,7 +542,7 @@ export default function InterviewCopilot({
     }
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/interview/${sessionId}/submit`, {
+      const response = await fetch(`https://smartdocq-2-nt1q.onrender.com/api/interview/${sessionId}/submit`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

@@ -603,6 +603,7 @@ class InterviewCopilot:
         detailed_feedback = []
         
         print(f"DEBUG: Evaluating {len(answers)} answers")
+        print(f"DEBUG: Answers received: {answers}")
         
         for i, answer in enumerate(answers):
             print(f"DEBUG: Evaluating answer {i+1}: {answer.get('question', 'No question')[:50]}...")
