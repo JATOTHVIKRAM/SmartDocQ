@@ -823,22 +823,39 @@ export default function InterviewCopilot({
                   You scored {feedback.filter(fb => fb.score === 100).length}/{feedback.length}
                 </p>
               )}
+              {/* Show total score format for technical questions */}
+              {feedback && feedback.length > 0 && (
+                <p className="mb-2 text-lg font-semibold text-blue-600">
+                  Average Score: {avgScore}/100
+                </p>
+              )}
               <div className="space-y-3">
                 {feedback.map((fb, i) => (
                   <div key={i} className={`p-3 rounded border ${
-                    fb.score === 100 ? 'bg-green-50 border-green-200' : 'bg-white border-border-color'
+                    fb.score >= 80 ? 'bg-green-50 border-green-200' : 
+                    fb.score >= 60 ? 'bg-yellow-50 border-yellow-200' : 
+                    'bg-red-50 border-red-200'
                   }`}>
                     <div className="text-sm font-medium">{i + 1}. {fb.question}</div>
                     <div className="text-sm text-text-secondary mt-1"><strong>Your answer:</strong> {fb.user_answer}</div>
+                    {fb.model_answer && (
+                      <div className="text-sm text-blue-600 mt-1"><strong>Model answer:</strong> {fb.model_answer}</div>
+                    )}
                     {fb.correct_answer && (
                       <div className="text-sm text-green-600 mt-1"><strong>Correct answer:</strong> {fb.correct_answer}</div>
                     )}
                     <div className={`text-sm mt-1 font-medium ${
-                      fb.score === 100 ? 'text-green-600' : 'text-red-600'
+                      fb.score >= 80 ? 'text-green-600' : 
+                      fb.score >= 60 ? 'text-yellow-600' : 
+                      'text-red-600'
                     }`}>
-                      <strong>Score:</strong> {fb.score === 100 ? 'Correct ✓' : 'Incorrect ✗'}
+                      <strong>Status:</strong> {fb.status || (fb.score >= 80 ? 'Correct' : fb.score >= 60 ? 'Partially Correct' : 'Incorrect')}
                     </div>
+                    <div className="text-sm mt-1"><strong>Score:</strong> {fb.score}/100</div>
                     <div className="text-sm mt-1 text-text-secondary"><strong>Feedback:</strong> {fb.feedback}</div>
+                    {fb.suggestions && (
+                      <div className="text-sm mt-1 text-blue-600"><strong>Suggestions:</strong> {fb.suggestions}</div>
+                    )}
                   </div>
                 ))}
               </div>
