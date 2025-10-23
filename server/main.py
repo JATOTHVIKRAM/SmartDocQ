@@ -1086,4 +1086,4 @@ def debug_models():
 # ------------------------
 @app.get("/")
 def read_root():
-    return {"message": "SmartDocQ Backend running."}
+    return {"message": "SmartDocQ Backend running.", "status": "healthy", "timestamp": datetime.now().isoformat()}
