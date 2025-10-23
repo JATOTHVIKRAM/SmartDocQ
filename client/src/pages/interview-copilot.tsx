@@ -817,15 +817,27 @@ export default function InterviewCopilot({
             <div className="p-4 border-t border-border-color bg-green-50">
               <h3 className="font-medium mb-2">Interview Review</h3>
               <p className="mb-2"><strong>Average Score:</strong> {avgScore}</p>
+              {/* Show total score format for MCQ */}
+              {structuredQuestions && structuredQuestions.length > 0 && (
+                <p className="mb-2 text-lg font-semibold text-green-600">
+                  You scored {feedback.filter(fb => fb.score === 100).length}/{feedback.length}
+                </p>
+              )}
               <div className="space-y-3">
                 {feedback.map((fb, i) => (
-                  <div key={i} className="p-3 bg-white rounded border border-border-color">
+                  <div key={i} className={`p-3 rounded border ${
+                    fb.score === 100 ? 'bg-green-50 border-green-200' : 'bg-white border-border-color'
+                  }`}>
                     <div className="text-sm font-medium">{i + 1}. {fb.question}</div>
                     <div className="text-sm text-text-secondary mt-1"><strong>Your answer:</strong> {fb.user_answer}</div>
                     {fb.correct_answer && (
                       <div className="text-sm text-green-600 mt-1"><strong>Correct answer:</strong> {fb.correct_answer}</div>
                     )}
-                    <div className="text-sm mt-1"><strong>Score:</strong> {fb.score}/100</div>
+                    <div className={`text-sm mt-1 font-medium ${
+                      fb.score === 100 ? 'text-green-600' : 'text-red-600'
+                    }`}>
+                      <strong>Score:</strong> {fb.score === 100 ? 'Correct ✓' : 'Incorrect ✗'}
+                    </div>
                     <div className="text-sm mt-1 text-text-secondary"><strong>Feedback:</strong> {fb.feedback}</div>
                   </div>
                 ))}
