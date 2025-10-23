@@ -958,8 +958,8 @@ def submit_answers(session_id: str, payload: SubmitAnswersRequest):
                 correct = str(q.get("correct", "")).strip()
                 # Compare normalized strings
                 user_sel = str(ans or "").strip()
-                score = 10 if user_sel and (user_sel == correct or user_sel.startswith(correct.split(")")[0])) else 0
-                fb_text = "Correct." if score == 10 else f"Incorrect. Correct: {correct}"
+                score = 100 if user_sel and (user_sel == correct or user_sel.startswith(correct.split(")")[0])) else 0
+                fb_text = "Correct answer!" if score == 100 else f"Incorrect. Correct answer: {correct}"
                 feedback.append({
                     "question": q.get("question", ""),
                     "user_answer": user_sel,

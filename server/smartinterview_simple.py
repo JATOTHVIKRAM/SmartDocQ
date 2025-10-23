@@ -163,6 +163,11 @@ class InterviewCopilot:
             }}
         ]
         
+        IMPORTANT: 
+        - Each question must have exactly 4 options (A, B, C, D)
+        - The correct answer must match one of the options exactly
+        - Make sure options are relevant to the document content
+        
         Generate {num_questions} relevant MCQ questions that test understanding of this content.
         """
         
@@ -183,15 +188,18 @@ class InterviewCopilot:
                 validated_questions = []
                 for item in structured_questions:
                     if isinstance(item, dict) and item.get("question") and item.get("options"):
-                        validated_questions.append({
-                            "question": str(item["question"]).strip(),
-                            "options": [str(opt).strip() for opt in item["options"] if str(opt).strip()],
-                            "correct": str(item.get("correct", "")).strip()
-                        })
+                        options = [str(opt).strip() for opt in item["options"] if str(opt).strip()]
+                        if len(options) == 4:  # Ensure exactly 4 options
+                            validated_questions.append({
+                                "question": str(item["question"]).strip(),
+                                "options": options,
+                                "correct": str(item.get("correct", "")).strip()
+                            })
                 
                 if len(validated_questions) >= num_questions:
                     self.structured_questions = validated_questions[:num_questions]
                     self.questions = [q["question"] for q in self.structured_questions]
+                    print(f"DEBUG: Generated {len(self.structured_questions)} MCQ questions with options")
                     return self.questions
         except Exception as e:
             print(f"DEBUG: MCQ JSON parsing failed: {str(e)}")
