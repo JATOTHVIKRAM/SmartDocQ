@@ -832,11 +832,14 @@ export default function InterviewCopilot({
               <div className="space-y-3">
                 {feedback.map((fb, i) => (
                   <div key={i} className={`p-3 rounded border ${
-                    fb.score >= 80 ? 'bg-green-50 border-green-200' : 
-                    fb.score >= 60 ? 'bg-yellow-50 border-yellow-200' : 
+                    fb.status === 'Correct' ? 'bg-green-50 border-green-200' : 
+                    fb.status === 'Partially Correct' ? 'bg-yellow-50 border-yellow-200' : 
                     'bg-red-50 border-red-200'
                   }`}>
                     <div className="text-sm font-medium">{i + 1}. {fb.question}</div>
+                    {fb.question_id && (
+                      <div className="text-xs text-gray-500">ID: {fb.question_id} | Difficulty: {fb.difficulty}</div>
+                    )}
                     <div className="text-sm text-text-secondary mt-1"><strong>Your answer:</strong> {fb.user_answer}</div>
                     {fb.model_answer && (
                       <div className="text-sm text-blue-600 mt-1"><strong>Model answer:</strong> {fb.model_answer}</div>
@@ -845,13 +848,20 @@ export default function InterviewCopilot({
                       <div className="text-sm text-green-600 mt-1"><strong>Correct answer:</strong> {fb.correct_answer}</div>
                     )}
                     <div className={`text-sm mt-1 font-medium ${
-                      fb.score >= 80 ? 'text-green-600' : 
-                      fb.score >= 60 ? 'text-yellow-600' : 
+                      fb.status === 'Correct' ? 'text-green-600' : 
+                      fb.status === 'Partially Correct' ? 'text-yellow-600' : 
                       'text-red-600'
                     }`}>
-                      <strong>Status:</strong> {fb.status || (fb.score >= 80 ? 'Correct' : fb.score >= 60 ? 'Partially Correct' : 'Incorrect')}
+                      <strong>Verdict:</strong> {
+                        fb.status === 'Correct' ? '✅ Correct' :
+                        fb.status === 'Partially Correct' ? '🟡 Partially Correct' :
+                        '❌ Incorrect'
+                      }
                     </div>
                     <div className="text-sm mt-1"><strong>Score:</strong> {fb.score}/100</div>
+                    {fb.similarity && (
+                      <div className="text-xs text-gray-500">Similarity: {Math.round(fb.similarity * 100)}%</div>
+                    )}
                     <div className="text-sm mt-1 text-text-secondary"><strong>Feedback:</strong> {fb.feedback}</div>
                     {fb.suggestions && (
                       <div className="text-sm mt-1 text-blue-600"><strong>Suggestions:</strong> {fb.suggestions}</div>

@@ -216,7 +216,7 @@ class InterviewCopilot:
             return self._generate_general_questions(num_questions, level, qtype, context)
 
     def _generate_technical_questions(self, num_questions: int, level: str, context: str) -> List[str]:
-        """Generate technical questions with model answers"""
+        """Generate technical questions with model answers, IDs, and difficulty levels"""
         prompt = f"""
         Based on the following document content, generate {num_questions} technical interview questions.
         
@@ -226,20 +226,30 @@ class InterviewCopilot:
         {context}
         
         For each question, provide:
-        1. A clear technical question
-        2. A model/correct answer
-        3. Key points that should be covered
+        1. A unique question ID
+        2. A clear technical question
+        3. A difficulty level (Easy, Medium, Hard)
+        4. A comprehensive model/correct answer
+        5. Key concepts that should be covered
         
         Respond in this EXACT JSON format:
         [
             {{
+                "id": "tech_001",
                 "question": "Explain the main concept discussed in the document",
-                "model_answer": "The main concept is... [detailed explanation]",
-                "key_points": ["Point 1", "Point 2", "Point 3"]
+                "difficulty": "Medium",
+                "model_answer": "The main concept is... [detailed explanation with key technical details]",
+                "key_concepts": ["concept1", "concept2", "concept3"]
             }}
         ]
         
-        Generate {num_questions} relevant technical questions that test deep understanding of this content.
+        IMPORTANT:
+        - Generate questions that test deep technical understanding
+        - Make model answers comprehensive and detailed
+        - Ensure difficulty levels match the requested level ({level})
+        - Include specific technical terms and concepts from the document
+        
+        Generate {num_questions} relevant technical questions that test understanding of this content.
         """
         
         response = gemini_generate(prompt)
@@ -257,18 +267,20 @@ class InterviewCopilot:
                 
                 # Validate and clean up the questions
                 validated_questions = []
-                for item in structured_questions:
+                for i, item in enumerate(structured_questions):
                     if isinstance(item, dict) and item.get("question"):
                         validated_questions.append({
+                            "id": item.get("id", f"tech_{i+1:03d}"),
                             "question": str(item["question"]).strip(),
+                            "difficulty": item.get("difficulty", level.title()),
                             "model_answer": str(item.get("model_answer", "")).strip(),
-                            "key_points": [str(point).strip() for point in item.get("key_points", []) if str(point).strip()]
+                            "key_concepts": [str(concept).strip() for concept in item.get("key_concepts", []) if str(concept).strip()]
                         })
                 
                 if len(validated_questions) >= num_questions:
                     self.structured_questions = validated_questions[:num_questions]
                     self.questions = [q["question"] for q in self.structured_questions]
-                    print(f"DEBUG: Generated {len(self.structured_questions)} technical questions with model answers")
+                    print(f"DEBUG: Generated {len(self.structured_questions)} technical questions with metadata")
                     return self.questions
         except Exception as e:
             print(f"DEBUG: Technical questions JSON parsing failed: {str(e)}")
@@ -311,15 +323,46 @@ class InterviewCopilot:
 
         # Check if this is a technical question with model answer
         model_answer = None
-        key_points = []
+        key_concepts = []
+        question_id = None
+        difficulty = None
         if hasattr(self, 'structured_questions') and self.structured_questions:
             for sq in self.structured_questions:
                 if sq.get("question") == question:
                     model_answer = sq.get("model_answer", "")
-                    key_points = sq.get("key_points", [])
+                    key_concepts = sq.get("key_concepts", [])
+                    question_id = sq.get("id", "")
+                    difficulty = sq.get("difficulty", "")
                     break
 
-        if model_answer and key_points:
+        if model_answer and key_concepts:
+            # Use semantic similarity evaluation for technical questions
+            similarity = self._calculate_semantic_similarity(answer, model_answer, key_concepts)
+            points, verdict = self._convert_similarity_to_score(similarity)
+            
+            # Generate AI feedback based on similarity
+            if similarity >= 0.85:
+                feedback_text = f"Excellent answer! You demonstrated strong understanding of the key concepts."
+                suggestions = "Continue building on this knowledge with more advanced topics."
+            elif similarity >= 0.60:
+                feedback_text = f"Good answer with some key points covered. You understood {int(similarity*100)}% of the expected content."
+                suggestions = "Try to include more technical details and specific examples from the document."
+            else:
+                feedback_text = f"Your answer needs improvement. You covered {int(similarity*100)}% of the expected content."
+                suggestions = "Review the document content and focus on the key technical concepts mentioned."
+            
+            return {
+                "score": int(points * 100),  # Convert to 0-100 scale for display
+                "points": points,  # Keep original 0-1 scale
+                "feedback": feedback_text,
+                "suggestions": suggestions,
+                "status": verdict,
+                "model_answer": model_answer,
+                "similarity": similarity,
+                "question_id": question_id,
+                "difficulty": difficulty
+            }
+        else:
             # Enhanced evaluation for technical questions with model answers
             prompt = f"""
             You are an expert technical interviewer evaluating a candidate's answer. Compare the candidate's answer with the model answer and key points.
@@ -444,6 +487,55 @@ class InterviewCopilot:
         
         print(f"DEBUG: Final evaluation: {evaluation}")
         return evaluation
+
+    def _calculate_semantic_similarity(self, user_answer: str, model_answer: str, key_concepts: List[str]) -> float:
+        """Calculate semantic similarity between user answer and model answer"""
+        if not user_answer or not model_answer:
+            return 0.0
+        
+        user_lower = user_answer.lower()
+        model_lower = model_answer.lower()
+        
+        # Keyword matching for key concepts
+        concept_score = 0.0
+        if key_concepts:
+            matched_concepts = 0
+            for concept in key_concepts:
+                concept_lower = concept.lower()
+                if concept_lower in user_lower:
+                    matched_concepts += 1
+            concept_score = matched_concepts / len(key_concepts)
+        
+        # Text similarity using TF-IDF
+        from sklearn.feature_extraction.text import TfidfVectorizer
+        from sklearn.metrics.pairwise import cosine_similarity
+        
+        try:
+            # Create TF-IDF vectors
+            vectorizer = TfidfVectorizer(stop_words='english', ngram_range=(1, 2))
+            tfidf_matrix = vectorizer.fit_transform([user_answer, model_answer])
+            
+            # Calculate cosine similarity
+            similarity = cosine_similarity(tfidf_matrix[0:1], tfidf_matrix[1:2])[0][0]
+            
+            # Combine concept matching and text similarity
+            # Weight: 60% text similarity, 40% concept matching
+            final_score = (0.6 * similarity) + (0.4 * concept_score)
+            
+            return min(1.0, max(0.0, final_score))
+        except Exception as e:
+            print(f"DEBUG: TF-IDF similarity calculation failed: {str(e)}")
+            # Fallback to simple keyword matching
+            return concept_score
+
+    def _convert_similarity_to_score(self, similarity: float) -> tuple:
+        """Convert similarity score to points and verdict"""
+        if similarity >= 0.85:
+            return 1.0, "Correct"
+        elif similarity >= 0.60:
+            return 0.5, "Partially Correct"
+        else:
+            return 0.0, "Incorrect"
 
     def _fallback_score_evaluation(self, question: str, answer: str, context: str) -> int:
         """Fallback scoring when Gemini JSON parsing fails - actually evaluates content"""
